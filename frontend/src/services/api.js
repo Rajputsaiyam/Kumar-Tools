@@ -224,11 +224,21 @@ export const getAdminAuthHeaders = () => {
   return token ? { "x-admin-token": token, Authorization: `Bearer ${token}` } : {};
 };
 
+export const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? "https://kumar-tools.onrender.com" : "")
+).replace(/\/$/, "");
+
+export const apiFetch = (path, options) => {
+  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+  return fetch(url, options);
+};
+
 export const productApi = {
   getAll: async (params = {}) => {
     try {
       const query = new URLSearchParams(params).toString();
-      const res = await fetch(`/api/products?${query}`);
+      const res = await apiFetch(`/api/products?${query}`);
       const data = await res.json();
       if (data.success) return data.data;
     } catch (e) {
@@ -246,7 +256,7 @@ export const productApi = {
 
   getBySlug: async (slug) => {
     try {
-      const res = await fetch(`/api/products/${slug}`);
+      const res = await apiFetch(`/api/products/${slug}`);
       const data = await res.json();
       if (data.success) return data.data;
     } catch (e) {
@@ -262,7 +272,7 @@ export const productApi = {
 
   update: async (id, patch) => {
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await apiFetch(`/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", ...getAdminAuthHeaders() },
         body: JSON.stringify(patch),
@@ -279,7 +289,7 @@ export const productApi = {
 export const orderApi = {
   getAll: async () => {
     try {
-      const res = await fetch("/api/orders");
+      const res = await apiFetch("/api/orders");
       const data = await res.json();
       if (data.success) return data.data;
     } catch (e) {
@@ -290,7 +300,7 @@ export const orderApi = {
 
   lookup: async (query) => {
     try {
-      const res = await fetch(`/api/orders/lookup/${encodeURIComponent(query)}`);
+      const res = await apiFetch(`/api/orders/lookup/${encodeURIComponent(query)}`);
       const data = await res.json();
       if (data.success) return data.data || [];
     } catch (e) {
@@ -315,7 +325,7 @@ export const orderApi = {
     }
 
     try {
-      const res = await fetch(`/api/orders/lookup/${encodeURIComponent(cleanPhone)}`);
+      const res = await apiFetch(`/api/orders/lookup/${encodeURIComponent(cleanPhone)}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         const serverOrders = data.data;
@@ -341,7 +351,7 @@ export const orderApi = {
   create: async (orderData) => {
     let created = null;
     try {
-      const res = await fetch("/api/orders", {
+      const res = await apiFetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
@@ -379,7 +389,7 @@ export const orderApi = {
 
   updateStatus: async (id, status) => {
     try {
-      const res = await fetch(`/api/orders/${id}/status`, {
+      const res = await apiFetch(`/api/orders/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", ...getAdminAuthHeaders() },
         body: JSON.stringify({ status }),
@@ -395,7 +405,7 @@ export const orderApi = {
 export const serviceApi = {
   getAll: async () => {
     try {
-      const res = await fetch("/api/services");
+      const res = await apiFetch("/api/services");
       const data = await res.json();
       if (data.success) return data.data;
     } catch (e) {
@@ -406,7 +416,7 @@ export const serviceApi = {
 
   create: async (serviceData) => {
     try {
-      const res = await fetch("/api/services", {
+      const res = await apiFetch("/api/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(serviceData),
@@ -429,7 +439,7 @@ export const serviceApi = {
 
   updateStatus: async (id, status) => {
     try {
-      const res = await fetch(`/api/services/${id}/status`, {
+      const res = await apiFetch(`/api/services/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", ...getAdminAuthHeaders() },
         body: JSON.stringify({ status }),
@@ -445,7 +455,7 @@ export const serviceApi = {
 export const whatsappApi = {
   getSettings: async () => {
     try {
-      const res = await fetch("/api/whatsapp/settings", {
+      const res = await apiFetch("/api/whatsapp/settings", {
         headers: getAdminAuthHeaders(),
       });
       const data = await res.json();
@@ -470,7 +480,7 @@ export const whatsappApi = {
   },
 
   updateSettings: async (settings) => {
-    const res = await fetch("/api/whatsapp/settings", {
+    const res = await apiFetch("/api/whatsapp/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAdminAuthHeaders() },
       body: JSON.stringify(settings),
@@ -480,7 +490,7 @@ export const whatsappApi = {
 
   getLogs: async () => {
     try {
-      const res = await fetch("/api/whatsapp/logs", {
+      const res = await apiFetch("/api/whatsapp/logs", {
         headers: getAdminAuthHeaders(),
       });
       const data = await res.json();
@@ -492,7 +502,7 @@ export const whatsappApi = {
   },
 
   clearLogs: async () => {
-    const res = await fetch("/api/whatsapp/logs", {
+    const res = await apiFetch("/api/whatsapp/logs", {
       method: "DELETE",
       headers: getAdminAuthHeaders(),
     });
@@ -500,7 +510,7 @@ export const whatsappApi = {
   },
 
   dispatchTest: async (payload) => {
-    const res = await fetch("/api/whatsapp/dispatch-test", {
+    const res = await apiFetch("/api/whatsapp/dispatch-test", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAdminAuthHeaders() },
       body: JSON.stringify(payload),
@@ -509,7 +519,7 @@ export const whatsappApi = {
   },
 
   broadcastAll: async (templateId) => {
-    const res = await fetch("/api/whatsapp/broadcast-all", {
+    const res = await apiFetch("/api/whatsapp/broadcast-all", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAdminAuthHeaders() },
       body: JSON.stringify({ templateId }),
@@ -519,7 +529,7 @@ export const whatsappApi = {
 
   getTemplates: async () => {
     try {
-      const res = await fetch("/api/whatsapp/templates", {
+      const res = await apiFetch("/api/whatsapp/templates", {
         headers: getAdminAuthHeaders(),
       });
       const data = await res.json();
@@ -533,7 +543,7 @@ export const whatsappApi = {
 
 export const chatApi = {
   sendMessage: async (message) => {
-    const res = await fetch("/api/chat/message", {
+    const res = await apiFetch("/api/chat/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
@@ -545,7 +555,7 @@ export const chatApi = {
 export const adminAuthApi = {
   login: async (identifier, password, pin, remember = true) => {
     try {
-      const res = await fetch("/api/admin/auth/login", {
+      const res = await apiFetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier, password, pin }),
@@ -570,7 +580,7 @@ export const adminAuthApi = {
     if (!token) return { success: false, authenticated: false };
 
     try {
-      const res = await fetch("/api/admin/auth/verify", {
+      const res = await apiFetch("/api/admin/auth/verify", {
         headers: { "x-admin-token": token },
       });
       const data = await res.json();
@@ -582,7 +592,7 @@ export const adminAuthApi = {
   },
 
   changePassword: async (currentPassword, newPassword, newPin) => {
-    const res = await fetch("/api/admin/auth/change-password", {
+    const res = await apiFetch("/api/admin/auth/change-password", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -595,7 +605,7 @@ export const adminAuthApi = {
 
   getStats: async () => {
     try {
-      const res = await fetch("/api/admin/auth/stats", {
+      const res = await apiFetch("/api/admin/auth/stats", {
         headers: getAdminAuthHeaders(),
       });
       const data = await res.json();
